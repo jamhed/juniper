@@ -1,0 +1,26 @@
+#!/usr/bin/expect -f
+	set timeout 5
+	set pfr [lindex $argv 0]
+	set fp [open "$pfr" r]
+	set lp [read $fp]
+	set ip [lindex $lp 0]
+	set login [lindex $lp 1]
+	set password [lindex $lp 2]
+
+	puts "=============== $ip $login $password ================"
+
+	spawn telnet $ip
+	expect "login:" {
+		send "$login\r"
+		expect "Password:" { send "$password\r" }
+	}
+	expect "Username: " {
+		send "$login\r"
+		expect "Password: " { send "$password\r" }
+		expect ">" {
+			send "en\r"
+			expect "Password: " { send "$password\r" }
+		}
+	}
+	interact
+exit

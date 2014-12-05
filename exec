@@ -1,0 +1,28 @@
+#!/usr/bin/perl -w
+use strict;
+use Net::Telnet;
+
+sub read_cfg {
+	my ($file) = @_;
+	open(my $f, $file) or die "$file: $!";
+	my $str = <$f>;
+	chomp $str;
+	close $f;
+	return split /\s+/, $str;
+}
+
+
+my ($cfg, @cmd) = @ARGV;
+
+unless ($cfg or -f $cfg) {
+	print "Usage: config_file commands\n";
+	exit;
+}
+
+my ($host, $login, $password) = read_cfg($cfg);
+
+my $c = Net::Telnet->new( Host => $host, Timeout => 5 );
+$c->login($login, $password);
+$c->cmd('set cli screen-length 0');
+
+print $c->cmd(join " ", @cmd);
