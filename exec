@@ -14,15 +14,24 @@ sub read_cfg {
 
 my ($cfg, @cmd) = @ARGV;
 
-unless ($cfg or -f $cfg) {
-	print "Usage: config_file commands\n";
+if (not defined $cfg or not -f $cfg) {
+	print "Usage: $0 config_file commands\n";
 	exit;
 }
 
-my ($host, $login, $password) = read_cfg($cfg);
+my ($host, $login, $password, $type) = read_cfg($cfg);
+$type ||= 'juniper';
 
 my $c = Net::Telnet->new( Host => $host, Timeout => 5 );
-$c->login($login, $password);
-$c->cmd('set cli screen-length 0');
+
+print $type, "\n";
+if ($type eq 'juniper') {
+	$c->login($login, $password);
+	$c->cmd('set cli screen-length 0');
+}
+elsif ($type eq 'huawei') {
+	$c->prompt('/<.+>$/');
+	$c->login($login, $password);
+}
 
 print $c->cmd(join " ", @cmd);
